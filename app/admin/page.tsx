@@ -5,11 +5,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export default function AdminPanel() {
+
   const [quizStarted, setQuizStarted] =
     useState(false);
-
-  const [currentQuestion, setCurrentQuestion] =
-    useState(1);
 
   const [players, setPlayers] =
     useState(0);
@@ -17,9 +15,14 @@ export default function AdminPanel() {
   const [quizEnded, setQuizEnded] =
     useState(false);
 
+  const [currentQuestion, setCurrentQuestion] =
+    useState(1);
+
   // FETCH PLAYERS
   useEffect(() => {
+
     const fetchPlayers = async () => {
+
       const { data } = await supabase
         .from('players')
         .select('*');
@@ -29,13 +32,56 @@ export default function AdminPanel() {
       }
     };
 
+    // FETCH QUIZ STATE
+    const fetchQuizState =
+      async () => {
+
+        const { data } =
+          await supabase
+            .from('quiz_state')
+            .select('*')
+            .eq('id', 1)
+            .single();
+
+        if (data) {
+
+          setCurrentQuestion(
+            data.current_question
+          );
+
+          if (
+            data.status === 'live'
+          ) {
+            setQuizStarted(true);
+            setQuizEnded(false);
+          }
+
+          if (
+            data.status === 'waiting'
+          ) {
+            setQuizStarted(false);
+            setQuizEnded(false);
+          }
+
+          if (
+            data.status === 'ended'
+          ) {
+            setQuizStarted(false);
+            setQuizEnded(true);
+          }
+        }
+      };
+
     fetchPlayers();
+    fetchQuizState();
 
-    const channel = supabase.channel(
-      'admin-players'
-    );
+    // PLAYERS REALTIME
+    const playersChannel =
+      supabase.channel(
+        'admin-players'
+      );
 
-    channel.on(
+    playersChannel.on(
       'postgres_changes',
       {
         event: '*',
@@ -47,58 +93,92 @@ export default function AdminPanel() {
       }
     );
 
-    channel.subscribe();
+    playersChannel.subscribe();
+
+    // QUIZ STATE REALTIME
+    const quizChannel =
+      supabase.channel(
+        'admin-quiz-state'
+      );
+
+    quizChannel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'quiz_state',
+      },
+      async () => {
+        fetchQuizState();
+      }
+    );
+
+    quizChannel.subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+
+      supabase.removeChannel(
+        playersChannel
+      );
+
+      supabase.removeChannel(
+        quizChannel
+      );
     };
+
   }, []);
 
   // START QUIZ
   const startQuiz = async () => {
+
     setQuizStarted(true);
 
     setQuizEnded(false);
+
+    setCurrentQuestion(1);
 
     await supabase
       .from('quiz_state')
       .update({
         status: 'live',
+        current_question: 1,
       })
       .eq('id', 1);
   };
 
-  // NEXT QUESTION
-  const nextQuestion = async () => {
-    const next =
-      currentQuestion + 1;
-
-    setCurrentQuestion(next);
-
-    await supabase
-      .from('quiz_state')
-      .update({
-        current_question: next,
-      })
-      .eq('id', 1);
-  };
-
-  // END QUIZ
+  // END QUIZ + RESET
   const endQuiz = async () => {
+
     setQuizEnded(true);
 
     setQuizStarted(false);
 
+    setPlayers(0);
+
+    setCurrentQuestion(1);
+
+    // DELETE ALL PLAYERS
+    await supabase
+      .from('players')
+      .delete()
+      .neq('id', 0);
+
+    // RESET QUIZ STATE
     await supabase
       .from('quiz_state')
       .update({
-        status: 'ended',
+        status: 'waiting',
+        current_question: 1,
       })
       .eq('id', 1);
+
+    alert(
+      'Quiz ended and reset successfully!'
+    );
   };
 
   return (
-    <div className="relative h-screen overflow-hidden bg-black text-white">
+    <div className="relative min-h-screen overflow-hidden bg-black text-white">
 
       {/* Background */}
       <div className="absolute inset-0 bg-[url('/images/stadium.jpg')] bg-cover bg-center opacity-20" />
@@ -109,7 +189,7 @@ export default function AdminPanel() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,200,0,0.12),transparent_60%)]" />
 
       {/* Main */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-screen px-6 text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center py-10">
 
         {/* Heading */}
         <motion.h1
@@ -121,7 +201,7 @@ export default function AdminPanel() {
             opacity: 1,
             y: 0,
           }}
-          className="text-6xl md:text-8xl font-black tracking-tight"
+          className="text-5xl md:text-8xl font-black tracking-tight"
         >
           ADMIN PANEL
         </motion.h1>
@@ -137,13 +217,13 @@ export default function AdminPanel() {
           transition={{
             delay: 0.4,
           }}
-          className="mt-4 text-xl text-yellow-400"
+          className="mt-4 text-lg md:text-xl text-yellow-400"
         >
           IPL QUIZ CONTROL ROOM 🏏
         </motion.p>
 
         {/* Status Cards */}
-        <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-5xl">
 
           {/* STATUS */}
           <motion.div
@@ -155,15 +235,15 @@ export default function AdminPanel() {
               opacity: 1,
               y: 0,
             }}
-            className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8"
+            className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 md:p-8"
           >
             <div className="text-sm tracking-[4px] text-yellow-300">
               STATUS
             </div>
 
             <div
-              className={`mt-5 text-4xl font-black
-              
+              className={`mt-5 text-3xl md:text-4xl font-black
+
               ${
                 quizEnded
                   ? 'text-red-400'
@@ -194,13 +274,13 @@ export default function AdminPanel() {
             transition={{
               delay: 0.2,
             }}
-            className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8"
+            className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 md:p-8"
           >
             <div className="text-sm tracking-[4px] text-cyan-300">
               CURRENT QUESTION
             </div>
 
-            <div className="mt-5 text-5xl font-black">
+            <div className="mt-5 text-4xl md:text-5xl font-black">
               {currentQuestion}
             </div>
           </motion.div>
@@ -218,13 +298,13 @@ export default function AdminPanel() {
             transition={{
               delay: 0.4,
             }}
-            className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8"
+            className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 md:p-8"
           >
             <div className="text-sm tracking-[4px] text-pink-300">
               PLAYERS
             </div>
 
-            <div className="mt-5 text-5xl font-black">
+            <div className="mt-5 text-4xl md:text-5xl font-black">
               {players}
             </div>
           </motion.div>
@@ -232,46 +312,32 @@ export default function AdminPanel() {
         </div>
 
         {/* Buttons */}
-        <div className="mt-14 flex flex-wrap items-center justify-center gap-6">
+        <div className="mt-12 flex flex-col md:flex-row items-center justify-center gap-5 w-full max-w-xl">
 
           {/* START */}
           <motion.button
             whileHover={{
-              scale: 1.05,
+              scale: 1.03,
             }}
             whileTap={{
               scale: 0.97,
             }}
             onClick={startQuiz}
-            className="px-12 py-5 rounded-3xl bg-gradient-to-r from-emerald-400 to-green-500 text-black text-2xl font-black shadow-[0_0_50px_rgba(0,255,120,0.5)]"
+            className="w-full px-10 py-5 rounded-3xl bg-gradient-to-r from-emerald-400 to-green-500 text-black text-xl md:text-2xl font-black shadow-[0_0_50px_rgba(0,255,120,0.5)]"
           >
             START QUIZ
-          </motion.button>
-
-          {/* NEXT */}
-          <motion.button
-            whileHover={{
-              scale: 1.05,
-            }}
-            whileTap={{
-              scale: 0.97,
-            }}
-            onClick={nextQuestion}
-            className="px-12 py-5 rounded-3xl bg-gradient-to-r from-cyan-400 to-blue-500 text-black text-2xl font-black shadow-[0_0_50px_rgba(0,180,255,0.5)]"
-          >
-            NEXT QUESTION
           </motion.button>
 
           {/* END */}
           <motion.button
             whileHover={{
-              scale: 1.05,
+              scale: 1.03,
             }}
             whileTap={{
               scale: 0.97,
             }}
             onClick={endQuiz}
-            className="px-12 py-5 rounded-3xl bg-gradient-to-r from-red-400 to-orange-500 text-black text-2xl font-black shadow-[0_0_50px_rgba(255,80,0,0.5)]"
+            className="w-full px-10 py-5 rounded-3xl bg-gradient-to-r from-red-400 to-orange-500 text-black text-xl md:text-2xl font-black shadow-[0_0_50px_rgba(255,80,0,0.5)]"
           >
             END QUIZ
           </motion.button>
@@ -279,7 +345,7 @@ export default function AdminPanel() {
         </div>
 
         {/* Footer */}
-        <div className="mt-16 text-sm tracking-[5px] text-white/30">
+        <div className="mt-14 text-xs md:text-sm tracking-[5px] text-white/30">
           IPL QUIZ MASTER CONTROL
         </div>
 

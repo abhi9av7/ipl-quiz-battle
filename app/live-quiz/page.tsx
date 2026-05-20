@@ -80,6 +80,9 @@ export default function LiveQuiz() {
   const [leaderboard, setLeaderboard] =
     useState<any[]>([]);
 
+  const [answerLocked, setAnswerLocked] =
+    useState(false);
+
   const username =
     typeof window !== 'undefined'
       ? localStorage.getItem(
@@ -139,9 +142,11 @@ export default function LiveQuiz() {
 
     const interval =
       setInterval(() => {
+
         setTimer(
           (prev) => prev - 1
         );
+
       }, 1000);
 
     return () =>
@@ -185,22 +190,26 @@ export default function LiveQuiz() {
           );
       }
 
-      // FETCH LIVE LEADERBOARD
-      await fetchLeaderboard();
+      // WAIT FOR ALL PLAYERS
+      setTimeout(async () => {
 
-      // SHOW LEADERBOARD AFTER 3 SEC
+        await fetchLeaderboard();
+
+      }, 2000);
+
+      // SHOW ANSWER
       setTimeout(() => {
 
         setShowAnswer(false);
 
         setShowLeaderboard(true);
 
-        // SHOW FOR 5 SEC
+        // LEADERBOARD
         setTimeout(() => {
 
           setShowLeaderboard(false);
 
-          // LAST QUESTION?
+          // FINAL QUESTION?
           if (
             currentQuestion + 1 >=
             questions.length
@@ -230,6 +239,8 @@ export default function LiveQuiz() {
 
           setSelectedAnswer(null);
 
+          setAnswerLocked(false);
+
           setTimer(15);
 
           setCountdownPlayed(
@@ -238,7 +249,7 @@ export default function LiveQuiz() {
 
         }, 5000);
 
-      }, 3000);
+      }, 2000);
     };
 
   const question =
@@ -264,11 +275,11 @@ export default function LiveQuiz() {
           }}
           className="relative z-10"
         >
-          <div className="text-7xl md:text-9xl font-black text-yellow-400">
+          <div className="text-4xl md:text-9xl font-black text-yellow-400 leading-tight">
             FINAL RESULTS
           </div>
 
-          <div className="mt-8 text-3xl text-white/70">
+          <div className="mt-5 text-lg md:text-3xl text-white/70">
             Calculating Final
             Standings...
           </div>
@@ -282,7 +293,7 @@ export default function LiveQuiz() {
               repeat: Infinity,
               ease: 'linear',
             }}
-            className="mt-12 w-24 h-24 border-4 border-yellow-400 border-t-transparent rounded-full mx-auto"
+            className="mt-8 w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full mx-auto"
           />
         </motion.div>
       </div>
@@ -292,74 +303,86 @@ export default function LiveQuiz() {
   // LIVE LEADERBOARD
   if (showLeaderboard) {
     return (
-      <div className="relative h-screen overflow-hidden bg-black text-white flex flex-col items-center justify-center px-6 text-center">
+      <div className="relative min-h-screen overflow-hidden bg-black text-white flex flex-col items-center justify-center px-4 py-10">
 
         <div className="absolute inset-0 bg-[url('/images/stadium.jpg')] bg-cover bg-center opacity-20" />
 
-        <div className="absolute inset-0 bg-black/80" />
+        <div className="absolute inset-0 bg-black/85" />
 
         <motion.h1
           initial={{
-            scale: 0.7,
             opacity: 0,
+            y: -40,
           }}
           animate={{
-            scale: 1,
             opacity: 1,
+            y: 0,
           }}
-          className="relative z-10 text-6xl md:text-8xl font-black text-yellow-400"
+          className="relative z-10 text-3xl md:text-7xl font-black text-yellow-400 text-center leading-tight"
         >
-          LIVE LEADERBOARD
+          LIVE
+          <br />
+          LEADERBOARD
         </motion.h1>
 
         {/* LEADERBOARD */}
-        <div className="relative z-10 mt-12 w-full max-w-3xl flex flex-col gap-5">
+        <div className="relative z-10 mt-8 w-full max-w-md flex flex-col gap-4">
 
-          {leaderboard.map(
-            (
-              player,
-              index
-            ) => (
-              <motion.div
-                key={index}
-                initial={{
-                  opacity: 0,
-                  x: -40,
-                }}
-                animate={{
-                  opacity: 1,
-                  x: 0,
-                }}
-                className={`flex items-center justify-between rounded-3xl border px-6 py-5
+          <AnimatePresence>
 
-                ${
-                  index === 0
-                    ? 'border-yellow-400 bg-yellow-500/10'
-                    : 'border-white/10 bg-white/5'
-                }
-                `}
-              >
+            {leaderboard.map(
+              (
+                player,
+                index
+              ) => (
+                <motion.div
+                  layout
+                  key={player.id}
+                  initial={{
+                    opacity: 0,
+                    y: 40,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  transition={{
+                    layout: {
+                      duration: 1.5,
+                    },
+                  }}
+                  className={`flex items-center justify-between rounded-2xl border px-5 py-4
 
-                <div className="flex items-center gap-5">
+                  ${
+                    index === 0
+                      ? 'border-yellow-400 bg-yellow-500/10 shadow-[0_0_40px_rgba(255,200,0,0.2)]'
+                      : 'border-white/10 bg-white/5'
+                  }
+                  `}
+                >
 
-                  <div className="text-3xl font-black text-yellow-300">
-                    #{index + 1}
+                  <div className="flex items-center gap-4">
+
+                    <div className="text-2xl font-black text-yellow-300">
+                      #{index + 1}
+                    </div>
+
+                    <div className="text-xl font-bold">
+                      {
+                        player.username
+                      }
+                    </div>
                   </div>
 
-                  <div className="text-2xl font-bold">
-                    {
-                      player.username
-                    }
+                  <div className="text-2xl font-black text-emerald-400">
+                    {player.score}
                   </div>
-                </div>
 
-                <div className="text-3xl font-black text-emerald-400">
-                  {player.score}
-                </div>
+                </motion.div>
+              )
+            )}
 
-              </motion.div>
-            )
-          )}
+          </AnimatePresence>
 
         </div>
       </div>
@@ -367,7 +390,7 @@ export default function LiveQuiz() {
   }
 
   return (
-    <div className="relative h-screen overflow-hidden bg-black text-white">
+    <div className="relative min-h-screen overflow-hidden bg-black text-white">
 
       {/* Background */}
       <div className="absolute inset-0 bg-[url('/images/stadium.jpg')] bg-cover bg-center opacity-20" />
@@ -377,21 +400,36 @@ export default function LiveQuiz() {
       {/* Glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,200,0,0.15),transparent_60%)]" />
 
-      {/* TOP BAR */}
-      <div className="relative z-20 flex items-center justify-between px-6 md:px-10 py-5">
+      {/* TOP SECTION */}
+      <div className="relative z-20 flex flex-col items-center justify-center pt-6 px-4">
 
-        {/* QUESTION */}
-        <div>
-          <div className="text-sm tracking-[4px] text-yellow-300">
-            QUESTION
+        {/* QUESTION + SCORE */}
+        <div className="w-full max-w-md flex items-start justify-between">
+
+          {/* QUESTION */}
+          <div>
+            <div className="text-[11px] tracking-[3px] text-yellow-300">
+              QUESTION
+            </div>
+
+            <div className="text-2xl font-black leading-none mt-1">
+              {currentQuestion + 1}
+
+              <span className="text-white/30">
+                /{questions.length}
+              </span>
+            </div>
           </div>
 
-          <div className="text-3xl font-black">
-            {currentQuestion + 1}
+          {/* SCORE */}
+          <div className="text-right">
+            <div className="text-[11px] tracking-[3px] text-cyan-300">
+              SCORE
+            </div>
 
-            <span className="text-white/30">
-              /{questions.length}
-            </span>
+            <div className="text-2xl font-black leading-none mt-1">
+              {score}
+            </div>
           </div>
         </div>
 
@@ -402,7 +440,7 @@ export default function LiveQuiz() {
               ? {
                   scale: [
                     1,
-                    1.15,
+                    1.1,
                     1,
                   ],
                 }
@@ -412,7 +450,7 @@ export default function LiveQuiz() {
             duration: 0.8,
             repeat: Infinity,
           }}
-          className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl font-black border-4
+          className={`mt-5 w-24 h-24 rounded-full flex items-center justify-center text-5xl font-black border-4
 
           ${
             timer <= 5
@@ -424,20 +462,14 @@ export default function LiveQuiz() {
           {timer}
         </motion.div>
 
-        {/* SCORE */}
-        <div className="text-right">
-          <div className="text-sm tracking-[4px] text-cyan-300">
-            SCORE
-          </div>
-
-          <div className="text-3xl font-black">
-            {score}
-          </div>
+        {/* TITLE */}
+        <div className="mt-4 text-[11px] tracking-[5px] text-yellow-300 text-center">
+          IPL QUIZ NIGHT
         </div>
       </div>
 
       {/* MAIN */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-[calc(100vh-120px)] px-6 pb-6 text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-220px)] px-4 pb-28 pt-5 text-center">
 
         {/* QUESTION CARD */}
         <motion.div
@@ -453,21 +485,16 @@ export default function LiveQuiz() {
           transition={{
             duration: 0.7,
           }}
-          className="w-full max-w-5xl rounded-[40px] border border-white/10 bg-white/5 backdrop-blur-xl px-6 md:px-10 py-8 shadow-[0_0_60px_rgba(255,255,255,0.05)]"
+          className="w-full max-w-md rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl px-4 py-5 shadow-[0_0_60px_rgba(255,255,255,0.05)]"
         >
 
-          {/* Heading */}
-          <div className="text-sm tracking-[6px] text-yellow-300">
-            IPL QUIZ NIGHT
-          </div>
-
           {/* Question */}
-          <h1 className="mt-6 text-4xl md:text-6xl font-black leading-tight">
+          <h1 className="text-4xl font-black leading-tight">
             {question.question}
           </h1>
 
           {/* OPTIONS */}
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="mt-7 flex flex-col gap-4">
 
             {question.options.map(
               (
@@ -486,33 +513,29 @@ export default function LiveQuiz() {
                 return (
                   <motion.button
                     key={index}
-                    whileHover={{
-                      scale: 1.03,
-                    }}
                     whileTap={{
                       scale: 0.97,
                     }}
                     disabled={
-                      showAnswer
+                      answerLocked
                     }
                     onClick={() => {
 
                       if (
-                        selectedAnswer ===
-                        null
+                        !answerLocked
                       ) {
                         setSelectedAnswer(
                           index
                         );
                       }
                     }}
-                    className={`relative overflow-hidden rounded-3xl border px-8 py-5 text-left text-xl font-bold transition-all duration-300
+                    className={`relative overflow-hidden rounded-2xl border px-4 py-4 text-left text-lg font-bold transition-all duration-300
 
                     ${
                       !showAnswer
                         ? isSelected
                           ? 'border-yellow-400 bg-yellow-500/20 shadow-[0_0_40px_rgba(255,200,0,0.4)]'
-                          : 'border-white/10 bg-white/5 hover:border-yellow-400/40 hover:bg-yellow-500/10'
+                          : 'border-white/10 bg-white/5'
                         : isCorrect
                         ? 'border-emerald-400 bg-emerald-500/20 shadow-[0_0_50px_rgba(0,255,120,0.4)]'
                         : isSelected
@@ -521,17 +544,17 @@ export default function LiveQuiz() {
                     }
                   `}
                   >
-                    <div className="flex items-center gap-5">
+                    <div className="flex items-center gap-4">
 
                       {/* LETTER */}
-                      <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-2xl">
+                      <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center text-xl">
                         {String.fromCharCode(
                           65 + index
                         )}
                       </div>
 
                       {/* OPTION */}
-                      <div className="flex-1">
+                      <div className="flex-1 leading-snug">
                         {option}
                       </div>
                     </div>
@@ -542,36 +565,6 @@ export default function LiveQuiz() {
             )}
 
           </div>
-
-          {/* LOCK BUTTON */}
-          {!showAnswer && (
-            <motion.button
-              whileHover={{
-                scale: 1.05,
-              }}
-              whileTap={{
-                scale: 0.97,
-              }}
-              onClick={
-                revealAnswer
-              }
-              disabled={
-                selectedAnswer ===
-                null
-              }
-              className={`mt-8 px-12 py-5 rounded-3xl text-2xl font-black transition-all duration-300
-
-                ${
-                  selectedAnswer !==
-                  null
-                    ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-[0_0_50px_rgba(255,180,0,0.6)]'
-                    : 'bg-zinc-800 text-white/40 cursor-not-allowed'
-                }
-              `}
-            >
-              LOCK ANSWER 🔒
-            </motion.button>
-          )}
 
           {/* RESULT */}
           <AnimatePresence>
@@ -586,17 +579,17 @@ export default function LiveQuiz() {
                   opacity: 1,
                   y: 0,
                 }}
-                className="mt-8"
+                className="mt-7"
               >
 
                 {selectedAnswer ===
                 question.correct ? (
-                  <div className="text-5xl font-black text-emerald-400">
-                    CORRECT ANSWER 🔥
+                  <div className="text-3xl font-black text-emerald-400">
+                    CORRECT 🔥
                   </div>
                 ) : (
-                  <div className="text-5xl font-black text-red-400">
-                    WRONG ANSWER 💀
+                  <div className="text-3xl font-black text-red-400">
+                    WRONG 💀
                   </div>
                 )}
 
@@ -606,6 +599,62 @@ export default function LiveQuiz() {
           </AnimatePresence>
 
         </motion.div>
+
+        {/* LOCK BUTTON */}
+        {!showAnswer && (
+          <div className="fixed bottom-5 left-0 right-0 px-4 z-50">
+
+            <motion.button
+              whileTap={{
+                scale: 0.97,
+              }}
+              onClick={() => {
+
+                if (
+                  selectedAnswer !== null
+                ) {
+
+                  setAnswerLocked(
+                    true
+                  );
+
+                  const lockAudio =
+                    new Audio(
+                      '/sounds/lock.mp3'
+                    );
+
+                  lockAudio.volume =
+                    0.7;
+
+                  lockAudio.play();
+                }
+              }}
+              disabled={
+                selectedAnswer ===
+                null ||
+                answerLocked
+              }
+              className={`w-full max-w-md mx-auto py-4 rounded-2xl text-xl font-black transition-all duration-300
+
+                ${
+                  selectedAnswer !==
+                    null &&
+                  !answerLocked
+                    ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-[0_0_50px_rgba(255,180,0,0.6)]'
+                    : answerLocked
+                    ? 'bg-emerald-500 text-black'
+                    : 'bg-zinc-800 text-white/40 cursor-not-allowed'
+                }
+              `}
+            >
+              {answerLocked
+                ? 'ANSWER LOCKED 🔒'
+                : 'LOCK ANSWER 🔒'}
+            </motion.button>
+
+          </div>
+        )}
+
       </div>
     </div>
   );
