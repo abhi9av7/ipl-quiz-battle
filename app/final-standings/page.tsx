@@ -1,28 +1,25 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 
 const leaderboard = [
   {
     name: 'ABHINAV',
     score: 30,
   },
-
   {
     name: 'VIRAT',
     score: 20,
   },
-
   {
     name: 'DHONI',
     score: 20,
   },
-
   {
     name: 'ROHIT',
     score: 10,
   },
-
   {
     name: 'SKY',
     score: 10,
@@ -30,13 +27,26 @@ const leaderboard = [
 ];
 
 export default function FinalStandings() {
+  
+  // 🚀 TIMED MEME BLAST AUTOMATION
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      // FIXED: Fires 'fah.mp3' exactly when the leaderboard mount layout presents itself
+      if (urlParams.get('triggerFah') === 'true') {
+        const fahAudio = new Audio('/sounds/fah.mp3');
+        fahAudio.volume = 1.0; 
+        fahAudio.play().catch((e) => console.log('Audio execution block handled safely'));
+      }
+    }
+  }, []);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
 
       {/* Background */}
       <div className="absolute inset-0 bg-[url('/images/stadium.jpg')] bg-cover bg-center opacity-20" />
-
       <div className="absolute inset-0 bg-black/85" />
 
       {/* Glow */}
@@ -133,6 +143,7 @@ export default function FinalStandings() {
               transition={{
                 duration: 2,
                 repeat: Infinity,
+                ease: 'easeInOut',
               }}
               className="text-8xl"
             >
@@ -201,53 +212,42 @@ export default function FinalStandings() {
           }}
           className="mt-20 w-full max-w-4xl rounded-[40px] border border-white/10 bg-white/5 backdrop-blur-xl px-8 py-8"
         >
-
           <div className="text-2xl font-black tracking-[5px] text-yellow-300">
             COMPLETE LEADERBOARD
           </div>
 
           <div className="mt-8 flex flex-col gap-5">
-
-            {leaderboard.map(
-              (player, index) => (
-                <motion.div
-                  key={index}
-                  initial={{
-                    opacity: 0,
-                    x: -40,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    x: 0,
-                  }}
-                  transition={{
-                    delay:
-                      1.2 + index * 0.1,
-                  }}
-                  className="flex items-center justify-between rounded-3xl border border-white/10 bg-black/30 px-6 py-5"
-                >
-
-                  <div className="flex items-center gap-5">
-
-                    <div className="text-3xl font-black text-yellow-300">
-                      #{index + 1}
-                    </div>
-
-                    <div className="text-2xl font-bold">
-                      {player.name}
-                    </div>
+            {leaderboard.map((player, index) => (
+              <motion.div
+                key={index}
+                initial={{
+                  opacity: 0,
+                  x: -40,
+                }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                }}
+                transition={{
+                  delay: 1.2 + index * 0.1,
+                }}
+                className="flex items-center justify-between rounded-3xl border border-white/10 bg-black/30 px-6 py-5"
+              >
+                <div className="flex items-center gap-5">
+                  <div className="text-3xl font-black text-yellow-300">
+                    #{index + 1}
                   </div>
-
-                  <div className="text-3xl font-black text-emerald-400">
-                    {player.score}
+                  <div className="text-2xl font-bold">
+                    {player.name}
                   </div>
+                </div>
 
-                </motion.div>
-              )
-            )}
-
+                <div className="text-3xl font-black text-emerald-400">
+                  {player.score}
+                </div>
+              </motion.div>
+            ))}
           </div>
-
         </motion.div>
 
       </div>
