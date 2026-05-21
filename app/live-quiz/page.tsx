@@ -1,50 +1,166 @@
 'use client';
 
-import {
-  motion,
-  AnimatePresence,
-} from 'framer-motion';
-
-import {
-  useEffect,
-  useState,
-  useRef,
-} from 'react';
-
+import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 
-// Add all your 30 questions inside this array structure cleanly
+// 🔥 All 30 categorized IPL questions cleanly integrated here
 const questions = [
+  // ================= EASY LEVEL (1-10) =================
   {
-    question: 'Who won IPL 2016?',
-    options: [
-      'Mumbai Indians',
-      'Sunrisers Hyderabad',
-      'Royal Challengers Bangalore',
-      'Chennai Super Kings',
-    ],
+    question: "Which team won the inaugural season of the IPL in 2008?",
+    options: ["Chennai Super Kings", "Rajasthan Royals", "Mumbai Indians", "Delhi Daredevils"],
     correct: 1,
   },
   {
-    question: 'Who is called Mr. IPL?',
-    options: [
-      'Virat Kohli',
-      'MS Dhoni',
-      'Suresh Raina',
-      'Rohit Sharma',
-    ],
+    question: "Who scored the first-ever century in IPL history in the opening match of 2008?",
+    options: ["Chris Gayle", "Brendon McCullum", "Sachin Tendulkar", "AB de Villiers"],
+    correct: 1,
+  },
+  {
+    question: "Which Australian player captained Sunrisers Hyderabad (SRH) for multiple years and led them to a title win?",
+    options: ["Glenn Maxwell", "David Warner", "Steve Smith", "Aaron Finch"],
+    correct: 1,
+  },
+  {
+    question: "In which year did Mumbai Indians win their first-ever IPL title?",
+    options: ["2011", "2012", "2013", "2015"],
     correct: 2,
   },
   {
-    question: 'Which player has most IPL runs?',
-    options: [
-      'Rohit Sharma',
-      'Virat Kohli',
-      'David Warner',
-      'KL Rahul',
-    ],
+    question: "Which famous IPL captain is widely known by the nickname 'Thala'?",
+    options: ["Rohit Sharma", "Virat Kohli", "MS Dhoni", "Gautam Gambhir"],
+    correct: 2,
+  },
+  {
+    question: "Which team uses the M. Chinnaswamy Stadium, known for its high-scoring matches, as their home ground?",
+    options: ["Kolkata Knight Riders", "Royal Challengers Bengaluru", "Punjab Kings", "Mumbai Indians"],
     correct: 1,
   },
+  {
+    question: "Two new teams were added to the IPL in 2022. One was Gujarat Titans, who was the second team?",
+    options: ["Lucknow Super Giants", "Kochi Tuskers", "Pune Warriors", "Rising Pune Supergiant"],
+    correct: 0,
+  },
+  {
+    question: "Who holds the record for the highest individual score in an IPL inning with a massive 175* runs?",
+    options: ["AB de Villiers", "Chris Gayle", "Andre Russell", "Kieron Pollard"],
+    correct: 1,
+  },
+  {
+    question: "Which nickname was given to Suresh Raina due to his incredible consistency and heavy run-scoring for CSK?",
+    options: ["Mr. IPL", "Corporate King", "Run Machine", "Captain Cool"],
+    correct: 0,
+  },
+  {
+    question: "How many times did Kolkata Knight Riders (KKR) win the IPL trophy under Gautam Gambhir's captaincy?",
+    options: ["1 time", "2 times", "3 times", "Never"],
+    correct: 1,
+  },
+
+  // ================= MEDIUM LEVEL (11-20) =================
+  {
+    question: "Who was the first Indian player to win the prestigious IPL 'Orange Cap'?",
+    options: ["Virat Kohli", "Sachin Tendulkar", "Robin Uthappa", "Suresh Raina"],
+    correct: 1,
+  },
+  {
+    question: "Which bowler has delivered the highest number of dot balls in IPL history?",
+    options: ["Bhuvneshwar Kumar", "Sunil Narine", "Yuzvendra Chahal", "Ravichandran Ashwin"],
+    correct: 0,
+  },
+  {
+    question: "Who is the only player in IPL history to win the 'Player of the Tournament' (MVP) award in the inaugural 2008 season?",
+    options: ["Shane Warne", "Yusuf Pathan", "Shane Watson", "Sanath Jayasuriya"],
+    correct: 2,
+  },
+  {
+    question: "Which two teams competed in the first-ever Super Over match in IPL history during the 2009 season?",
+    options: ["RR & KKR", "MI & RCB", "CSK & PBKS", "DC & SRH"],
+    correct: 0,
+  },
+  {
+    question: "Which overseas player holds the record for the fastest century in IPL history, reaching it in just 30 balls?",
+    options: ["AB de Villiers", "Travis Head", "Chris Gayle", "David Miller"],
+    correct: 2,
+  },
+  {
+    question: "Hardik Pandya was scouted and bought by Mumbai Indians in the 2015 auction for what base price?",
+    options: ["10 Lakhs", "20 Lakhs", "50 Lakhs", "1 Crore"],
+    correct: 1,
+  },
+  {
+    question: "Which legendary spinner holds the unique record of taking three hat-tricks for three different teams in the IPL?",
+    options: ["Harbhajan Singh", "Amit Mishra", "Piyush Chawla", "Yuzvendra Chahal"],
+    correct: 1,
+  },
+  {
+    question: "Who was the captain of the Deccan Chargers squad when they lifted their only IPL trophy in 2009?",
+    options: ["VVS Laxman", "Adam Gilchrist", "Rohit Sharma", "Kumar Sangakkara"],
+    correct: 1,
+  },
+  {
+    question: "Who is the youngest player to score a century in IPL history?",
+    options: ["Yashasvi Jaiswal", "Manish Pandey", "Shubman Gill", "Prithvi Shaw"],
+    correct: 1,
+  },
+  {
+    question: "Which player has featured in the highest number of IPL tournament finals in history?",
+    options: ["Rohit Sharma", "MS Dhoni", "Suresh Raina", "Ravindra Jadeja"],
+    correct: 1,
+  },
+
+  // ================= HARD LEVEL (21-30) =================
+  {
+    question: "Who was the first bowler to bowl a maiden over in the history of the IPL?",
+    options: ["Glenn McGrath", "Praveen Kumar", "Brett Lee", "Ishant Sharma"],
+    correct: 0,
+  },
+  {
+    question: "In the infamous match where RCB was bowled out for 49 against KKR in 2017, how many RCB batsmen scored in double digits?",
+    options: ["Zero", "One", "Two", "Three"],
+    correct: 0,
+  },
+  {
+    question: "Who is the first overseas player to reach the milestone of playing 100 matches for a single IPL franchise?",
+    options: ["AB de Villiers", "Kieron Pollard", "Lasith Malinga", "David Warner"],
+    correct: 1,
+  },
+  {
+    question: "Aaron Finch holds a unique record of playing for how many different unique franchises across his IPL career?",
+    options: ["6", "7", "8", "9"],
+    correct: 3,
+  },
+  {
+    question: "Which bowler holds the record for the best bowling figures (5/5) in an IPL match by an uncapped Indian player?",
+    options: ["Akash Madhwal", "Mayank Yadav", "Ankit Rajpoot", "Mohit Sharma"],
+    correct: 0,
+  },
+  {
+    question: "Who was the first player ever to be officially traded between two franchises in IPL history?",
+    options: ["Shikhar Dhawan", "Zaheer Khan", "Robin Uthappa", "Dinesh Karthik"],
+    correct: 0,
+  },
+  {
+    question: "In the 2022 Mega Auction, who was the most expensive uncapped Indian player bought by any franchise?",
+    options: ["Shahrukh Khan", "Rahul Tewatia", "Avesh Khan", "Ishan Kishan"],
+    correct: 2,
+  },
+  {
+    question: "Who was the captain of Kings XI Punjab during the 2014 season when they reached their first and only IPL final?",
+    options: ["Adam Gilchrist", "George Bailey", "Virender Sehwag", "David Miller"],
+    correct: 1,
+  },
+  {
+    question: "Who is the only bowler in IPL history to have delivered two maiden overs in a single IPL match?",
+    options: ["Dale Steyn", "Mohammed Siraj", "Bhuvneshwar Kumar", "Trent Boult"],
+    correct: 1,
+  },
+  {
+    question: "Who was the first Indian batsman to face the very first ball and score the first run in IPL history back in 2008?",
+    options: ["Sourav Ganguly", "Wasim Jaffer", "Rahul Dravid", "Sachin Tendulkar"],
+    correct: 0,
+  }
 ];
 
 export default function LiveQuiz() {
@@ -75,12 +191,12 @@ export default function LiveQuiz() {
     currentScoreRef.current = score;
   }, [score]);
 
-  // BACK-GROUND MUSIC MANAGEMENT
+  // BACK-GROUND MUSIC MANAGEMENT (UPGRADED TO 2% VOLUME)
   useEffect(() => {
     if (showFinalSuspense) return;
 
     const bgAudio = new Audio('/sounds/bg-stadium.mp3');
-    bgAudio.volume = 0.01; 
+    bgAudio.volume = 0.02; // 🔥 Formatted explicitly to 2% volume as requested
     bgAudio.loop = true;
     
     const startAudio = () => {
@@ -108,13 +224,13 @@ export default function LiveQuiz() {
     }
   };
 
-  // TIMER AND AUTOMATIC SEQUENCE SYSTEM
+  // TIMER AND AUTOMATIC SEQUENCE SYSTEM (COUNTDOWN DROPPED TO 50% VOLUME)
   useEffect(() => {
     if (showAnswer || showLeaderboard || quizEnded || showFinalSuspense) return;
 
     if (timer === 5 && !countdownPlayed) {
       const countdownAudio = new Audio('/sounds/countdown5.mp3');
-      countdownAudio.volume = 1;
+      countdownAudio.volume = 0.5; // 📉 Scaled down to 50% volume to prevent high peaks
       countdownAudio.play().catch(e => console.log('Audio play blocked'));
       setCountdownPlayed(true);
     }
@@ -202,7 +318,7 @@ export default function LiveQuiz() {
   };
 
   const handleLifeline = () => {
-    if (lifelineUsed || answerLocked) return;
+    if (lifelineUsed || answerLocked || showAnswer) return;
     
     const currentCorrect = questions[currentQuestion].correct;
     const incorrectIndices: number[] = [];
