@@ -1,233 +1,200 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+} from 'framer-motion';
 
-const leaderboard = [
-  {
-    name: 'ABHINAV',
-    score: 40,
-  },
+import {
+  useEffect,
+  useState,
+} from 'react';
 
-  {
-    name: 'ARYAN',
-    score: 35,
-  },
+import { supabase } from '@/lib/supabase';
 
-  {
-    name: 'ROHAN',
-    score: 25,
-  },
+export default function FinalStandings() {
+  const [podium, setPodium] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  {
-    name: 'DAKSH',
-    score: 20,
-  },
+  useEffect(() => {
+    const fetchFinalScores = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('players')
+          .select('*')
+          .order('score', { ascending: false });
 
-  {
-    name: 'KRISH',
-    score: 10,
-  },
-];
+        if (error) throw error;
+        if (data) setPodium(data);
+      } catch (err) {
+        console.error('Error compiling database standings:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-export default function LeaderboardPage() {
+    fetchFinalScores();
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('triggerFah') === 'true') {
+      const fahAudio = new Audio('/sounds/fah.mp3');
+      fahAudio.volume = 1.0;
+      fahAudio.play().catch(e => console.log("Audio load skipped:", e));
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-screen w-screen bg-[#040406] flex items-center justify-center text-white">
+        <div className="text-xl font-black tracking-widest uppercase animate-pulse text-yellow-400">
+          COMPILING ULTIMATE SCORECARD...
+        </div>
+      </div>
+    );
+  }
+
+  const winner = podium[0];
+  const runnerUp = podium[1];
+  const secondRunnerUp = podium[2];
+  const remainingPlayers = podium.slice(3);
+
   return (
-    <div className="relative h-screen overflow-hidden bg-black text-white">
+    <div className="relative min-h-screen w-screen overflow-x-hidden bg-[#040406] text-white flex flex-col items-center p-6 select-none">
+      <div className="absolute inset-0 bg-[url('/images/stadium.jpg')] bg-cover bg-center opacity-15 mix-blend-screen" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/90 to-[#040406]" />
+      <div className="absolute top-0 inset-x-0 h-[500px] bg-[radial-gradient(circle_at_top,rgba(234,179,8,0.12),transparent_70%)]" />
 
-      {/* Background */}
-      <div className="absolute inset-0 bg-[url('/images/stadium.jpg')] bg-cover bg-center opacity-20" />
-
-      <div className="absolute inset-0 bg-black/80" />
-
-      {/* Glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,200,0,0.15),transparent_60%)]" />
-
-      {/* Main */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-screen px-6 py-4 text-center">
-
-        {/* Heading */}
-        <motion.h1
-          initial={{
-            opacity: 0,
-            y: 40,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          className="text-5xl md:text-7xl font-black tracking-tight"
-        >
+      {/* HEADER */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative z-10 text-center mt-12 mb-16"
+      >
+        <div className="text-xs tracking-[8px] text-zinc-500 font-black uppercase mb-2">VICTORY ARENA COMPLETION</div>
+        <h1 className="text-6xl font-black tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-amber-200 to-orange-500 drop-shadow-[0_0_35px_rgba(234,179,8,0.3)]">
           FINAL STANDINGS
-        </motion.h1>
+        </h1>
+      </motion.div>
 
-        {/* Subtitle */}
-        <motion.p
-          initial={{
-            opacity: 0,
-          }}
-          animate={{
-            opacity: 1,
-          }}
-          transition={{
-            delay: 0.4,
-          }}
-          className="mt-2 text-lg text-yellow-400"
-        >
-          TOP PLAYERS OF THE ARENA 🔥
-        </motion.p>
-
-        {/* TOP 3 */}
-        <div className="mt-10 flex items-end gap-4">
-
-          {/* 2nd */}
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 40,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              delay: 0.5,
-            }}
-            className="w-40 rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl p-5"
-          >
-            <div className="text-5xl">
-              🥈
-            </div>
-
-            <div className="mt-3 text-2xl font-black text-white">
-              {leaderboard[1].name}
-            </div>
-
-            <div className="mt-2 text-4xl font-black text-gray-300">
-              {leaderboard[1].score}
-            </div>
-
-            <div className="mt-1 text-xs tracking-[3px] text-white/40">
-              POINTS
-            </div>
-          </motion.div>
-
-          {/* 1st */}
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 40,
-              scale: 0.8,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-            }}
-            transition={{
-              delay: 0.2,
-            }}
-            className="relative w-48 rounded-[32px] border border-yellow-400/30 bg-yellow-500/10 backdrop-blur-xl p-6 shadow-[0_0_60px_rgba(255,200,0,0.35)]"
-          >
-
-            {/* Glow */}
-            <div className="absolute inset-0 rounded-[32px] bg-yellow-400/5 blur-2xl" />
-
-            <div className="relative z-10">
-
-              <div className="text-6xl">
-                👑
+      {/* 🏆 TRI-PODIUM PACK (Crown & Username Placed Safely INSIDE the box) */}
+      <div className="relative z-10 w-full max-w-4xl grid grid-cols-3 items-end gap-6 mb-20 px-6">
+        
+        {/* 2nd Place */}
+        <div className="flex flex-col items-center">
+          {runnerUp ? (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-center w-full"
+            >
+              <div className="bg-gradient-to-b from-zinc-700/20 via-zinc-900/40 to-transparent border border-zinc-700/50 backdrop-blur-md h-44 rounded-t-3xl flex flex-col justify-between p-5 shadow-2xl">
+                {/* Crown & Name directly clustered inside top grid segment */}
+                <div className="flex flex-col items-center gap-1 mt-1">
+                  <span className="text-3xl filter drop-shadow-md">🥈</span>
+                  <div className="text-lg font-black text-zinc-300 tracking-wide truncate max-w-full px-1">
+                    {runnerUp.username}
+                  </div>
+                </div>
+                <div className="w-full flex justify-between items-end border-t border-zinc-800/40 pt-3">
+                  <div className="text-3xl font-black text-zinc-400 tracking-tighter">#2</div>
+                  <div className="text-xl font-black text-cyan-400">
+                    {runnerUp.score} <span className="text-[10px] text-zinc-500 font-bold">PTS</span>
+                  </div>
+                </div>
               </div>
-
-              <div className="mt-3 text-3xl font-black text-yellow-300">
-                {leaderboard[0].name}
-              </div>
-
-              <div className="mt-3 text-6xl font-black text-yellow-400">
-                {leaderboard[0].score}
-              </div>
-
-              <div className="mt-1 text-xs tracking-[3px] text-yellow-200/70">
-                POINTS
-              </div>
-
-            </div>
-          </motion.div>
-
-          {/* 3rd */}
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 40,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              delay: 0.8,
-            }}
-            className="w-40 rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl p-5"
-          >
-            <div className="text-5xl">
-              🥉
-            </div>
-
-            <div className="mt-3 text-2xl font-black text-white">
-              {leaderboard[2].name}
-            </div>
-
-            <div className="mt-2 text-4xl font-black text-orange-300">
-              {leaderboard[2].score}
-            </div>
-
-            <div className="mt-1 text-xs tracking-[3px] text-white/40">
-              POINTS
-            </div>
-          </motion.div>
-
+            </motion.div>
+          ) : (
+            <div className="h-44 w-full bg-zinc-950/20 border border-zinc-900/40 rounded-t-3xl border-dashed" />
+          )}
         </div>
 
-        {/* OTHER PLAYERS */}
-        <div className="mt-8 w-full max-w-3xl space-y-3">
-
-          {leaderboard.slice(3).map((player, index) => (
-            <motion.div
-              key={index}
-              initial={{
-                opacity: 0,
-                x: -40,
-              }}
-              animate={{
-                opacity: 1,
-                x: 0,
-              }}
-              transition={{
-                delay: 1 + index * 0.2,
-              }}
-              className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-6 py-4 backdrop-blur-xl"
+        {/* 1st Place - Absolute Center Winner Crown */}
+        <div className="flex flex-col items-center">
+          {winner ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 100, damping: 12 }}
+              className="text-center w-full relative z-20"
             >
+              <div className="bg-gradient-to-b from-yellow-500/20 via-amber-500/5 to-transparent border-2 border-yellow-400 backdrop-blur-xl h-60 rounded-t-3xl flex flex-col justify-between p-6 shadow-[0_0_60px_rgba(234,179,8,0.25)] border-b-transparent">
+                {/* Crown & Name wrapped natively inside premium glowing layout block */}
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="text-4xl animate-bounce filter drop-shadow-[0_5px_10px_rgba(234,179,8,0.3)]">👑</span>
+                  <div className="text-xl font-black text-yellow-400 tracking-wider truncate max-w-full px-1 drop-shadow-sm">
+                    {winner.username}
+                  </div>
+                </div>
+                <div className="w-full flex justify-between items-end border-t border-yellow-500/20 pt-4">
+                  <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-400 to-amber-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.2)]">#1</div>
+                  <div className="text-2xl font-black text-yellow-300 tracking-wider">
+                    {winner.score} <span className="text-xs text-yellow-500 font-extrabold uppercase">PTS</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="h-60 w-full bg-zinc-950/20 border-2 border-zinc-900/40 rounded-t-3xl border-dashed" />
+          )}
+        </div>
 
-              {/* LEFT */}
-              <div className="flex items-center gap-5">
+        {/* 3rd Place */}
+        <div className="flex flex-col items-center">
+          {secondRunnerUp ? (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-center w-full"
+            >
+              <div className="bg-gradient-to-b from-amber-900/10 via-zinc-900/50 to-transparent border border-amber-800/40 backdrop-blur-md h-36 rounded-t-3xl flex flex-col justify-between p-5 shadow-2xl">
+                {/* Crown & Name integrated directly inside the box frame */}
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-3xl filter drop-shadow-md">🥉</span>
+                  <div className="text-base font-black text-amber-600/90 tracking-wide truncate max-w-full px-1">
+                    {secondRunnerUp.username}
+                  </div>
+                </div>
+                <div className="w-full flex justify-between items-end border-t border-zinc-800/40 pt-3">
+                  <div className="text-3xl font-black text-amber-700">#3</div>
+                  <div className="text-lg font-black text-cyan-400">
+                    {secondRunnerUp.score} <span className="text-[10px] text-zinc-500 font-bold">PTS</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="h-36 w-full bg-zinc-950/20 border border-zinc-900/40 rounded-t-3xl border-dashed" />
+          )}
+        </div>
 
-                <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-xl font-black text-white/70">
+      </div>
+
+      {/* 📜 SUB-LEADERBOARD TRACKER TABLE FOR RANK #4 TO TOP 10 */}
+      <div className="relative z-10 w-full max-w-2xl flex flex-col gap-3 pb-16">
+        <div className="text-[10px] tracking-[4px] text-zinc-500 font-black uppercase px-2 mb-1">REMAINING ARENA CONTENDERS</div>
+        <AnimatePresence>
+          {remainingPlayers.map((player, index) => (
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 + index * 0.05 }}
+              key={player.id || index}
+              className="flex items-center justify-between rounded-xl border border-zinc-900/80 bg-zinc-950/40 backdrop-blur-md px-6 py-4 transition-all duration-300 hover:border-zinc-800 hover:bg-zinc-900/20"
+            >
+              <div className="flex items-center gap-4">
+                <div className="text-xs font-black text-zinc-400 bg-zinc-900/90 border border-zinc-800 px-2.5 py-1 rounded-lg">
                   #{index + 4}
                 </div>
-
-                <div className="text-2xl font-black tracking-wide">
-                  {player.name}
-                </div>
+                <div className="text-lg font-extrabold text-zinc-300 tracking-wide">{player.username}</div>
               </div>
-
-              {/* RIGHT */}
-              <div className="text-3xl font-black text-cyan-300">
-                {player.score}
+              <div className="text-xl font-black text-zinc-400 tracking-wider">
+                {player.score} <span className="text-[10px] text-zinc-600 uppercase font-black tracking-normal">PTS</span>
               </div>
-
             </motion.div>
           ))}
-
-        </div>
-
+        </AnimatePresence>
       </div>
     </div>
   );
