@@ -67,7 +67,7 @@ export default function LiveQuiz() {
       ? localStorage.getItem('iplUsername')
       : '';
 
-  // 1. BACK-GROUND MUSIC MANAGEMENT (FIXED: EXACT 1% VOLUME & SUSPENSE KILL SWITCH)
+  // 1. BACK-GROUND MUSIC MANAGEMENT (EXACT 1% VOLUME & SUSPENSE KILL SWITCH)
   useEffect(() => {
     if (showFinalSuspense) return;
 
@@ -123,7 +123,7 @@ export default function LiveQuiz() {
     return () => clearInterval(interval);
   }, [timer, showAnswer, showLeaderboard, quizEnded, countdownPlayed, showFinalSuspense]);
 
-  // SPEED BONUS + ANSWER REVEAL LOGIC
+  // SPEED BONUS + ANSWER REVEAL LOGIC (FIXED)
   const revealAnswer = async () => {
     setShowAnswer(true);
 
@@ -142,13 +142,26 @@ export default function LiveQuiz() {
     if (isCorrect) {
       const speedBonus = timer; 
       const totalTurnPoints = 10 + speedBonus;
+      
+      // FIX: Database update me delay na ho isliye async state se pehle static calculation variable use kiya hai
       const newScore = score + totalTurnPoints;
       setScore(newScore);
 
-      await supabase
-        .from('players')
-        .update({ score: newScore })
-        .eq('username', username);
+      // System Tracker Logs
+      console.log(`[QUIZ] Target User: ${username || 'NOT_FOUND'} | Turn Points: ${totalTurnPoints} | New Database Score: ${newScore}`);
+
+      if (username) {
+        const { error } = await supabase
+          .from('players')
+          .update({ score: newScore })
+          .eq('username', username);
+          
+        if (error) {
+          console.error("🚨 Supabase Database Error:", error.message);
+        }
+      } else {
+        console.warn("🚨 LocalStorage Mismatch: 'iplUsername' nahi mila. Score bypass state loaded.");
+      }
     }
 
     setTimeout(async () => {
@@ -427,7 +440,7 @@ export default function LiveQuiz() {
                 selectedAnswer !== null && !answerLocked
                   ? 'bg-gradient-to-r from-yellow-500 via-amber-400 to-orange-500 text-zinc-950 border-yellow-300 shadow-[0_10px_30px_rgba(234,179,8,0.3)] hover:brightness-110 font-black'
                   : answerLocked 
-                  ? 'bg-emerald-500 text-zinc-950 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]' 
+                  ? 'bg-emerald-500 text-zinc-950 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)]' 
                   : 'bg-zinc-900/50 text-zinc-600 border-zinc-800/80 cursor-not-allowed'
               }`}
             >
